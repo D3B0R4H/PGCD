@@ -28,36 +28,40 @@ data = tratamento_dados(dados_treino)
 
 #Visualização com ggplot2
 # Série Temporal
-#save_plot = ggplot( data, aes(x=xValue, y=yValue)) +
+# save_plot = ggplot( data, aes(x=xValue, y=yValue)) +
 #   geom_line( color="black", size=0.5, alpha=0.9, linetype=1) +
 #   labs(x="Mês", y = "Média mensal dos dias que choveu")+
 #   scale_x_date(date_breaks = "3 month" , date_labels = "%Y \ %b")+
-#   theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5, size =14),axis.title.x = element_text(size=20),axis.title.y = element_text(size = 20))
+#     theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5, size =14),axis.title.x = element_text(size=20),
+#           axis.title.y = element_text(size = 20), axis.text.y = element_text(size = 14))
 # 
 # ggsave(
 #   "TS_Média.jpeg",
 #   path ="C:/Users/debor/OneDrive/Propria - Estudo/Pós-Graduação Ciencia de Dados/Monografia/Gráficos",
-#   width = 30, 
-#   height = 20, 
+#   width = 30,
+#   height = 20,
 #   units = "cm"
 # )
 # 
 # # Histograma
 # 
-# save_plot = ggplot(data, aes(x = yValue)) + 
+# save_plot = ggplot(data, aes(x = yValue)) +
 #   geom_histogram(aes(y=..density..), colour="black", fill="white", bins = 10)+
-#   geom_density(alpha=.2, fill="blue")+ 
+#   geom_density(alpha=.2, fill="blue")+
 #   labs(x="Média mensal dos dias que choveu", y = "Densidade")+
 #   theme(axis.title.x = element_text(size=20), axis.text.x = element_text(size = 14),
-#         axis.title.y = element_text(size = 20))
+#         axis.title.y = element_text(size = 20), axis.text.y = element_text(size = 14))
 # 
 # ggsave(
 #   "Hist_Média.jpeg",
 #   path ="C:/Users/debor/OneDrive/Propria - Estudo/Pós-Graduação Ciencia de Dados/Monografia/Gráficos",
-#   width = 30, 
-#   height = 20, 
+#   width = 30,
+#   height = 20,
 #   units = "cm"
 # )
+
+plt_boxplot(data, "Média mensal dos dias que choveu", "BP_Media.jpeg")
+
 
 #Métricas
 #summary(y)
@@ -72,23 +76,6 @@ dlmy = estimacao_parametros_primeira_ordem(0,0,y)
 
 filtro_d = kalman_primeira_ordem(y, dlmy, data)
 
-
-# save_plot = ggplot( filtro_d, aes(x=Data, y=Dados)) +
-#   labs(x="Mês", y = "Volume de chuva")+
-#   theme(axis.title.x = element_text(size=20), axis.text.x = element_text(size = 14),
-#         axis.title.y = element_text(size = 20)) +
-#   geom_line(aes(y=Dados),col='darkgrey', size = 1)+       
-#   geom_line(aes(y=yFilt_f),col='grey', size = 1, linetype = "dashed")+
-#   geom_ribbon(aes(ymin=pl,ymax=pu),alpha=.25, fill = 'blue')                # Intervalo de credibilidade
-# 
-# 
-# ggsave(
-#   "Kalman_media.jpg",
-#   path ="C:/Users/debor/OneDrive/Propria - Estudo/Pós-Graduação Ciencia de Dados/Monografia/Gráficos",
-#   width = 30, 
-#   height = 20, 
-#   units = "cm"
-# )
 
 ##Smooth
 
@@ -114,6 +101,13 @@ smooth_d = smooth_primeira_ordem(y, dlmy , data)
 # Previsão, com apenas nível
 
 prev = previsao_primeira_ordem(y,dlmy, meses=6, dados_treino, "Media_dias_chuva")
+plt_prev(prev,18, "Prev_media.jpg",2,10)
+
+suavizado = data.frame("s1" = prev$window.ySmooth.s..start...c.2014..1..
+                       ,"real" = prev$window.y..start...c.2014..1..
+                       ,"Data" = prev$Data)
+
+
 
 # save_plot = ggplot( prev, aes(x=Data, y=window.y..start...c.2014..1..)) +
 #   labs(x="Mês", y = "Volume")+
@@ -137,7 +131,7 @@ prev = previsao_primeira_ordem(y,dlmy, meses=6, dados_treino, "Media_dias_chuva"
 
 erro_primeira_ordem(prev)
 
-rm(dlmy);rm(filtro_d);rm(prev);rm(smooth_d)
+#rm(dlmy);rm(filtro_d);rm(prev);rm(smooth_d)
 
 
 # Previsão com nível e tendência
@@ -148,14 +142,18 @@ dlmy = estimacao_parametros_segunda_ordem(0,6,y)
 
 #Filtro de Kalman
 
-filtro_d = kalman_segunda_ordem(y, dlmy, data)
+filtro_d2 = kalman_segunda_ordem(y, dlmy, data)
 
-# save_plot = ggplot( filtro_d[-1,], aes(x=Data, y=yFilt_m)) +
+plt_nivel(filtro_d, filtro_d2, "Kalman_mediaNivel.jpg")
+
+plt_tendencia(filtro_d2,12,"Kalman_mediat.jpg")
+# save_plot = ggplot( tail(filtro_d2,12), aes(x=Data, y=yFilt_m)) +
 #   labs(x="Mês", y = "Tendência")+
 #   theme(axis.title.x = element_text(size=20), axis.text.x = element_text(size = 14),
 #         axis.title.y = element_text(size = 20)) +
 #   geom_line(aes(y=yFilt_m),col='darkgrey', size = 1)+
-#   geom_ribbon(aes(ymin=pl,ymax=pu),alpha=.25, fill = 'blue')
+#   geom_ribbon(aes(ymin=pl,ymax=pu),alpha=.25, fill = 'blue')+
+#   geom_line(aes(y=0),col='red', size = 1)
 # 
 # ggsave(
 #   "Kalman_mediat.jpg",
@@ -166,13 +164,13 @@ filtro_d = kalman_segunda_ordem(y, dlmy, data)
 # )
 
 
-save_plot = ggplot( filtro_d, aes(x=Data, y=yFilt_m1)) +
-  labs(x="Mês", y = "Nível")+
-  theme(axis.title.x = element_text(size=20), axis.text.x = element_text(size = 14),
-        axis.title.y = element_text(size = 20)) +
-  geom_line(aes(y=Dados),col='darkgrey', size = 1)+
-  geom_line(aes(y=yFilt_m1),col='grey', size = 1, linetype = "dashed")+
-  geom_ribbon(aes(ymin=pl1,ymax=pu1),alpha=.25, fill = 'blue')
+# save_plot = ggplot( filtro_d, aes(x=Data, y=yFilt_m1)) +
+#   labs(x="Mês", y = "Nível")+
+#   theme(axis.title.x = element_text(size=20), axis.text.x = element_text(size = 14),
+#         axis.title.y = element_text(size = 20)) +
+#   geom_line(aes(y=Dados),col='darkgrey', size = 1)+
+#   geom_line(aes(y=yFilt_m1),col='grey', size = 1, linetype = "dashed")+
+#   geom_ribbon(aes(ymin=pl1,ymax=pu1),alpha=.25, fill = 'blue')
 
 # ggsave(
 #   "Kalman_mediaNivel.jpg",
@@ -189,7 +187,9 @@ ySmooth = dlmSmooth(dlmFilter(y, dlmy))
 
 #Previsão com tendência, 6 meses a frente
 
-prev = previsao_segunda_ordem(y,dlmy, meses = 6, dados_treino, "Media_dias_chuva")
+prev2 = previsao_segunda_ordem(y,dlmy, meses = 6, dados_treino, "Media_dias_chuva")
+
+plt_prev2(prev2,18, "Prev_mediat.jpg",2,10)
 
 # save_plot = ggplot( prev, aes(x=Data, y=window.y..start...c.2014..1..)) +
 #   labs(x="Mês", y = "Volume")+
@@ -209,9 +209,15 @@ prev = previsao_segunda_ordem(y,dlmy, meses = 6, dados_treino, "Media_dias_chuva
 #   units = "cm"
 # )
 
+suavizado["s2"] = prev2$window.ySmooth.s...1...start...c.2014..1..
+plt_s(suavizado,"Smooth_media.jpg")
+
 
 #### Erro
 
 erro_segunda_ordem(prev,6)
 
-rm(dados);rm(dados_treino);rm(data);rm(dlmy);rm(filtro_d);rm(prev);rm(u_6_m)
+rm(dados);rm(dados_treino);rm(data);rm(dlmy);rm(filtro_d);rm(prev);rm(u_6_m);rm(ySmooth);rm(save_plot);rm(y); rm(data_am);rm(xValue);rm(yValue)
+rm(dados);rm(dados_treino);rm(data);rm(dlmy);rm(filtro_d);rm(prev);rm(u_6_m);rm(ySmooth);rm(save_plot);rm(y)
+rm(filtro_d2);rm(prev2);rm(smooth_d);rm(suavizado);rm(yFilt_);rm(erro);rm(t)
+
